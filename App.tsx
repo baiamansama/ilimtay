@@ -1,17 +1,22 @@
 import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import {
+  NavigationContainer,
+  DefaultTheme,
+  DarkTheme,
+} from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { StatusBar } from "expo-status-bar";
 
 import { AuthProvider, useAuth } from "./src/contexts/AuthContext";
 import { UserProvider, useUser } from "./src/contexts/UserContext";
+import { ThemeProvider, useTheme } from "./src/contexts/ThemeContext";
 
 // Screen Imports
 import LoginScreen from "./src/screens/auth/LoginScreen";
 import SignupScreen from "./src/screens/auth/SignupScreen";
 import DashboardScreen from "./src/screens/DashboardScreen";
-import ProfileScreen from "./src/screens/profile/ProfileScreen"; // Added
-import ProfileEditScreen from "./src/screens/profile/ProfileEditScreen"; // Added
+import ProfileScreen from "./src/screens/profile/ProfileScreen";
+import ProfileEditScreen from "./src/screens/profile/ProfileEditScreen";
 
 // Onboarding Screens
 import LanguageSelectionScreen from "./src/screens/onboarding/LanguageSelectionScreen";
@@ -74,6 +79,8 @@ function AppStackNavigator() {
       <AppStack.Screen name="MathSubject" component={MathSubjectScreen} />
       <AppStack.Screen name="MathTopic" component={MathTopicScreen} />
       <AppStack.Screen name="MathExercise" component={MathExerciseScreen} />
+
+      {/* Vocabulary Screens */}
       <AppStack.Screen
         name="VocabularySubject"
         component={VocabularySubjectScreen}
@@ -86,31 +93,27 @@ function AppStackNavigator() {
         name="VocabularyExercise"
         component={VocabularyExerciseScreen}
       />
-
-      {/* Placeholder screens for other subjects - you'll need to create these and import them */}
-      {/* e.g.
-      <AppStack.Screen name="ReadingSubject" component={ReadingSubjectScreen} />
-      <AppStack.Screen name="ScienceSubject" component={ScienceSubjectScreen} />
-      <AppStack.Screen name="WritingSubject" component={WritingSubjectScreen} />
-      <AppStack.Screen name="VocabularySubject" component={VocabularySubjectScreen} />
-      */}
     </AppStack.Navigator>
   );
 }
 
-// App Content Logic
+// App Content Logic (with Theme)
 function AppContent() {
-  const { currentUser, loading: authLoading } = useAuth(); // Added authLoading
-  const { isProfileComplete, loading: userLoading } = useUser(); // Added userLoading
+  const { currentUser, loading: authLoading } = useAuth();
+  const { isProfileComplete, loading: userLoading } = useUser();
+  const { theme } = useTheme(); // light | dark
 
   // Optional: Add a loading indicator while auth and user profile are being checked
   if (authLoading || (currentUser && userLoading)) {
-    // You might want a more sophisticated loading screen here
-    return null; // Or <ActivityIndicator size="large" />;
+    // You can add a custom loading indicator here
+    return null;
   }
 
+  // Choose navigation theme based on current theme
+  const navigationTheme = theme === "dark" ? DarkTheme : DefaultTheme;
+
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navigationTheme}>
       {!currentUser ? (
         <AuthStackNavigator />
       ) : !isProfileComplete ? (
@@ -122,14 +125,17 @@ function AppContent() {
   );
 }
 
-// Main App Component
+// Main App Component (with Providers)
 export default function App() {
   return (
-    <AuthProvider>
-      <UserProvider>
-        <AppContent />
-        <StatusBar style="auto" />
-      </UserProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <UserProvider>
+          <AppContent />
+          {/* StatusBar color will auto-adjust if you set it to "auto" */}
+          <StatusBar style="auto" />
+        </UserProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
