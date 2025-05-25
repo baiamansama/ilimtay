@@ -212,6 +212,22 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             averageScore: 0,
             bestTopic: "Addition",
           },
+          readingStats: {
+            totalCompleted: 0,
+            averageScore: 0,
+          },
+          scienceStats: {
+            totalCompleted: 0,
+            averageScore: 0,
+          },
+          writingStats: {
+            totalCompleted: 0,
+            averageScore: 0,
+          },
+          vocabularyStats: {
+            totalCompleted: 0,
+            averageScore: 0,
+          },
         });
         return;
       }
@@ -235,22 +251,32 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       // Calculate streak (consecutive days with exercises)
       const streak = calculateStreak(results);
 
-      // Math specific stats
-      const mathResults = results.filter((r) => r.subject === "Math");
-      const mathStats = {
-        totalCompleted: mathResults.length,
-        averageScore:
-          mathResults.length > 0
+      const getSubjectStats = (subject: string) => {
+        const subjectResults = results.filter((r) => r.subject === subject);
+        const totalCompleted = subjectResults.length;
+        const averageScore =
+          totalCompleted > 0
             ? Math.round(
-                mathResults.reduce(
+                subjectResults.reduce(
                   (sum, result) => sum + result.percentage,
                   0
-                ) / mathResults.length
+                ) / totalCompleted
               )
-            : 0,
+            : 0;
+        return { totalCompleted, averageScore };
+      };
+
+      const mathResults = results.filter((r) => r.subject === "Math");
+      const mathStats = {
+        ...getSubjectStats("Math"),
         bestTopic:
           mathResults.length > 0 ? getBestTopic(mathResults) : "Addition",
       };
+
+      const readingStats = getSubjectStats("Reading");
+      const scienceStats = getSubjectStats("Science");
+      const writingStats = getSubjectStats("Writing");
+      const vocabularyStats = getSubjectStats("Vocabulary");
 
       setUserStats({
         totalExercises,
@@ -259,6 +285,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         streak,
         lastActive: results[0].completedAt,
         mathStats,
+        readingStats,
+        scienceStats,
+        writingStats,
+        vocabularyStats,
       });
     } catch (error) {
       console.error("Error fetching user stats:", error);

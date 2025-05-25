@@ -413,20 +413,20 @@ const VocabularyExerciseScreen: React.FC<VocabularyExerciseScreenProps> = ({
 
         <View style={styles.optionsContainer}>
           {currentQuestion.options.map((option, index) => {
-            let buttonStyle = styles.optionButton;
-            let textStyle = styles.optionText;
+            let buttonStyle: any[] = [styles.optionButton];
+            let textStyle: any[] = [styles.optionText];
 
             if (showResult && selectedAnswer === option) {
               if (option === currentQuestion.correctAnswer) {
-                buttonStyle = [styles.optionButton, styles.correctOption];
-                textStyle = [styles.optionText, styles.correctOptionText];
+                buttonStyle.push(styles.correctOption);
+                textStyle.push(styles.correctOptionText);
               } else {
-                buttonStyle = [styles.optionButton, styles.wrongOption];
-                textStyle = [styles.optionText, styles.wrongOptionText];
+                buttonStyle.push(styles.wrongOption);
+                textStyle.push(styles.wrongOptionText);
               }
             } else if (showResult && option === currentQuestion.correctAnswer) {
-              buttonStyle = [styles.optionButton, styles.correctOption];
-              textStyle = [styles.optionText, styles.correctOptionText];
+              buttonStyle.push(styles.correctOption);
+              textStyle.push(styles.correctOptionText);
             }
 
             return (

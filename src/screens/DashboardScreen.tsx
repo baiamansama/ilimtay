@@ -12,11 +12,37 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import { useUser } from "../contexts/UserContext";
 import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
 import { AppStackParamList } from "../types/navigation";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { AVAILABLE_SUBJECTS } from "../constants/dashboard";
+
+// Helper to extract subject stats with proper defaults
+const getSubjectStat = (userStats: any, key: string) => {
+  const stats = userStats?.[key] ?? {};
+  return {
+    totalCompleted: Math.max(0, stats.totalCompleted || 0),
+    averageScore: Math.max(0, Math.min(100, stats.averageScore || 0)),
+  };
+};
+
+// Helper to get score color based on percentage
+const getScoreColor = (score: number): string => {
+  if (score >= 80) return "text-green-600";
+  if (score >= 60) return "text-yellow-600";
+  return "text-red-600";
+};
+
+// Helper to get performance emoji
+const getPerformanceEmoji = (percentage: number): string => {
+  if (percentage >= 90) return "🎉";
+  if (percentage >= 80) return "🔥";
+  if (percentage >= 70) return "👍";
+  if (percentage >= 60) return "💪";
+  return "📈";
+};
 
 const DashboardScreen: React.FC = () => {
-  const { currentUser, logout, deleteAccount } = useAuth();
+  const { currentUser, deleteAccount } = useAuth();
   const {
     userProfile,
     userStats,
@@ -30,88 +56,226 @@ const DashboardScreen: React.FC = () => {
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Refresh data when component mounts
   useEffect(() => {
     if (currentUser && userProfile) {
       fetchUserStats();
       fetchRecentResults();
     }
-  }, [currentUser, userProfile]);
-
-  const handleDeleteAccount = async (): Promise<void> => {
-    if (!password) {
-      Alert.alert("Error", "Please enter your password to confirm deletion");
-      return;
-    }
-
-    Alert.alert(
-      "Delete Account",
-      "Are you absolutely sure? This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              setLoading(true);
-              await deleteAccount(password);
-              Alert.alert("Success", "Your account has been deleted");
-            } catch (error: any) {
-              Alert.alert("Error", error.message);
-            } finally {
-              setLoading(false);
-              setShowDeleteModal(false);
-              setPassword("");
-            }
-          },
-        },
-      ]
-    );
-  };
+  }, [currentUser, userProfile, fetchUserStats, fetchRecentResults]);
 
   const closeModal = (): void => {
     setShowDeleteModal(false);
     setPassword("");
+    setLoading(false);
   };
 
-  // Show loading indicator while user data is loading
   if (userLoading) {
     return (
-      <View className="flex-1 bg-gradient-to-b from-blue-100 to-purple-100 justify-center items-center">
+      <View className="flex-1 bg-gray-50 justify-center items-center">
         <ActivityIndicator size="large" color="#3B82F6" />
-        <Text className="text-gray-600 mt-4">Loading your dashboard...</Text>
+        <Text className="text-gray-600 mt-4 text-base">
+          Loading your dashboard...
+        </Text>
       </View>
     );
   }
 
-  // Default values if userProfile is not available
+  // Safe profile display with fallbacks
   const displayProfile = {
     emoji: userProfile?.emoji || "🧑🏻‍🦱",
     language: userProfile?.language || "English",
-    languageCode: userProfile?.languageCode || "en",
-    grade: userProfile?.grade || 1,
-    isPremium: userProfile?.isPremium || false,
+    grade: Math.max(1, userProfile?.grade || 1),
+    isPremium: Boolean(userProfile?.isPremium),
+  };
+
+  // Categorize subjects based on completion
+  const attemptedSubjects = AVAILABLE_SUBJECTS.filter((subject) => {
+    const stats = getSubjectStat(userStats, subject.key);
+    return stats.totalCompleted > 0;
+  });
+
+  const unexploredSubjects = AVAILABLE_SUBJECTS.filter((subject) => {
+    const stats = getSubjectStat(userStats, subject.key);
+    return stats.totalCompleted === 0;
+  });
+
+  // Latest Activity Component
+  const LatestActivityCard = () => {
+    if (!recentResults?.length) return null;
+
+    const latest = recentResults[0];
+    const percentage = Math.round((latest.score / latest.totalQuestions) * 100);
+
+    return (
+      <View className="mb-6">
+        <Text className="text-2xl font-bold text-gray-800 mb-4 px-6">
+          Latest Activity
+        </Text>
+        <View className="mx-6">
+          <View className="bg-blue-500 rounded-2xl p-0 relative overflow-hidden">
+            {/* Performance emoji notification badge */}
+            <View className="absolute top-3 right-3 z-10">
+              <View className="bg-white/20 rounded-full w-10 h-10 items-center justify-center">
+                <Text className="text-xl">
+                  {getPerformanceEmoji(percentage)}
+                </Text>
+              </View>
+            </View>
+
+            {/* Content */}
+            <View className="p-6">
+              <View className="flex-row items-start justify-between">
+                <View className="flex-1 pr-4">
+                  <Text className="text-white/80 text-sm font-medium mb-1">
+                    {latest.subject}
+                  </Text>
+                  <Text className="text-white text-xl font-bold mb-3">
+                    {latest.topic}
+                  </Text>
+                  <View className="flex-row items-center">
+                    <Text className="text-white/90 text-base">
+                      Score:{" "}
+                      <Text className="font-bold text-white">
+                        {latest.score}
+                      </Text>
+                      <Text className="text-white/70">
+                        /{latest.totalQuestions}
+                      </Text>
+                    </Text>
+                  </View>
+                </View>
+
+                <View className="items-end">
+                  <Text className={`text-3xl font-extrabold text-white`}>
+                    {percentage}%
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  // Attempted Subject Card Component
+  const AttemptedSubjectCard = ({
+    subject,
+  }: {
+    subject: (typeof AVAILABLE_SUBJECTS)[0];
+  }) => {
+    const stats = getSubjectStat(userStats, subject.key);
+
+    return (
+      <TouchableOpacity
+        className={`${subject.color} rounded-3xl p-6 mb-4 shadow-lg border border-white/20`}
+        onPress={() => navigation.navigate(subject.nav as any)}
+        activeOpacity={0.9}
+      >
+        <View className="flex-row items-center justify-between mb-4">
+          <View className="flex-row items-center flex-1">
+            <Text className="text-3xl mr-3">{subject.emoji}</Text>
+            <Text className={`text-xl font-bold ${subject.textColor}`}>
+              {subject.label}
+            </Text>
+          </View>
+          <View className={`${subject.accentColor} px-3 py-1 rounded-full`}>
+            <Text className="text-white font-bold text-xs">ACTIVE</Text>
+          </View>
+        </View>
+
+        <View className="flex-row items-center justify-between">
+          <View className="flex-1">
+            <Text
+              className={`text-sm font-medium ${subject.textColor} opacity-70 mb-1`}
+            >
+              Attempts
+            </Text>
+            <Text className={`text-2xl font-bold ${subject.textColor}`}>
+              {stats.totalCompleted}
+            </Text>
+          </View>
+
+          <View className="items-end">
+            <Text
+              className={`text-sm font-medium ${subject.textColor} opacity-70 mb-1`}
+            >
+              Average Score
+            </Text>
+            <Text
+              className={`text-2xl font-bold ${getScoreColor(
+                stats.averageScore
+              )}`}
+            >
+              {Math.round(stats.averageScore)}%
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  // Unexplored Subject Card Component
+  const UnexploredSubjectCard = ({
+    subject,
+  }: {
+    subject: (typeof AVAILABLE_SUBJECTS)[0];
+  }) => (
+    <TouchableOpacity
+      className="w-[48%] aspect-square bg-white rounded-2xl shadow-md items-center justify-center border border-gray-100 mb-4"
+      onPress={() => navigation.navigate(subject.nav as any)}
+      activeOpacity={0.8}
+    >
+      <Text className="text-4xl mb-3">{subject.emoji}</Text>
+      <Text className="text-center font-bold text-lg text-gray-800 mb-2 px-2">
+        {subject.label}
+      </Text>
+      <View className="bg-blue-50 px-3 py-1 rounded-full">
+        <Text className="text-blue-600 text-xs font-medium">
+          Start Learning
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  // Handle account deletion
+  const handleDeleteAccount = async (): Promise<void> => {
+    if (!password.trim()) {
+      Alert.alert("Error", "Please enter your password");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await deleteAccount(password);
+    } catch (error) {
+      Alert.alert("Error", "Failed to delete account. Please try again.");
+    } finally {
+      setLoading(false);
+      closeModal();
+    }
   };
 
   return (
-    <View className="flex-1 bg-gradient-to-b from-blue-100 to-purple-100">
-      <ScrollView className="flex-1">
-        {/* Header with Profile */}
-        <View className="bg-white rounded-b-3xl shadow-lg px-6 py-8 mb-6">
-          <View className="flex-row items-center justify-between mb-4">
+    <View className="flex-1 bg-gray-50">
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        {/* Header Section */}
+        <View className="bg-white pt-12 pb-6 shadow-sm">
+          <View className="px-6">
             <View className="flex-row items-center">
               <TouchableOpacity
-                className="w-16 h-16 rounded-full bg-yellow-200 items-center justify-center mr-4 shadow-md"
+                className="w-20 h-20 rounded-full bg-gradient-to-br from-yellow-200 to-orange-200 items-center justify-center mr-4 shadow-lg"
                 onPress={() => navigation.navigate("Profile")}
+                activeOpacity={0.8}
               >
-                <Text className="text-3xl">{displayProfile.emoji}</Text>
+                <Text className="text-4xl">{displayProfile.emoji}</Text>
               </TouchableOpacity>
-              <View>
-                <Text className="text-xl font-bold text-gray-800">
+
+              <View className="flex-1">
+                <Text className="text-2xl font-bold text-gray-800 mb-1">
                   Hello there! 👋
                 </Text>
-                <Text className="text-gray-600">
+                <Text className="text-gray-600 text-base mb-1">
                   Grade {displayProfile.grade} • {displayProfile.language}
                 </Text>
                 {currentUser?.email && (
@@ -120,191 +284,85 @@ const DashboardScreen: React.FC = () => {
                   </Text>
                 )}
               </View>
-            </View>
 
-            {/* Premium Badge */}
-            {!displayProfile.isPremium && (
-              <TouchableOpacity
-                className="bg-gradient-to-r from-yellow-400 to-orange-400 px-4 py-2 rounded-full shadow-md"
-                onPress={() => navigation.navigate("Premium")}
-              >
-                <Text className="text-white font-bold text-sm">✨ Premium</Text>
-              </TouchableOpacity>
-            )}
+              {!displayProfile.isPremium && (
+                <TouchableOpacity
+                  className="bg-gradient-to-r from-yellow-400 to-orange-400 px-4 py-2 rounded-full shadow-lg"
+                  onPress={() => navigation.navigate("Premium")}
+                  activeOpacity={0.8}
+                >
+                  <Text className="text-white font-bold text-sm">
+                    ✨ Premium
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
+        </View>
 
-          {/* Stats Section */}
-          {userStats && (
-            <View className="bg-gray-50 rounded-2xl p-4 mb-4">
-              <Text className="text-lg font-bold text-gray-800 mb-3">
-                📊 Your Progress
-              </Text>
-              <View className="flex-row justify-between">
-                <View className="items-center">
-                  <Text className="text-2xl font-bold text-blue-600">
-                    {userStats.totalExercises}
-                  </Text>
-                  <Text className="text-gray-600 text-xs">Exercises</Text>
-                </View>
-                <View className="items-center">
-                  <Text className="text-2xl font-bold text-green-600">
-                    {userStats.averageScore}%
-                  </Text>
-                  <Text className="text-gray-600 text-xs">Avg Score</Text>
-                </View>
-                <View className="items-center">
-                  <Text className="text-2xl font-bold text-orange-600">
-                    {userStats.streak}
-                  </Text>
-                  <Text className="text-gray-600 text-xs">Day Streak</Text>
-                </View>
-                <View className="items-center">
-                  <Text className="text-2xl font-bold text-purple-600">
-                    {userStats.mathStats.totalCompleted}
-                  </Text>
-                  <Text className="text-gray-600 text-xs">Math Done</Text>
-                </View>
-              </View>
-            </View>
-          )}
+        {/* Latest Activity */}
+        <View className="py-6">
+          <LatestActivityCard />
+        </View>
 
-          {/* Recent Activity */}
-          {recentResults.length > 0 && (
-            <View className="bg-blue-50 rounded-2xl p-4 mb-4">
-              <Text className="text-lg font-bold text-gray-800 mb-2">
-                🎯 Latest Activity
-              </Text>
-              <View className="flex-row items-center justify-between">
-                <View>
-                  <Text className="font-semibold text-blue-800">
-                    {recentResults[0].subject} - {recentResults[0].topic}
-                  </Text>
-                  <Text className="text-blue-600 text-sm">
-                    Score: {recentResults[0].score}/
-                    {recentResults[0].totalQuestions} (
-                    {recentResults[0].percentage}%)
-                  </Text>
-                </View>
-                <Text className="text-2xl">
-                  {recentResults[0].percentage >= 80
-                    ? "🎉"
-                    : recentResults[0].percentage >= 60
-                    ? "👍"
-                    : "💪"}
+        {/* Content Sections */}
+        <View className="px-6 pb-6">
+          {/* Your Progress Section */}
+          {attemptedSubjects.length > 0 && (
+            <View className="mb-6">
+              <View className="flex-row items-center mb-4">
+                <Text className="text-2xl mr-2">🏆</Text>
+                <Text className="text-2xl font-bold text-gray-800">
+                  Your Progress
                 </Text>
               </View>
+              {attemptedSubjects.map((subject) => (
+                <AttemptedSubjectCard key={subject.key} subject={subject} />
+              ))}
             </View>
           )}
 
-          {/* Premium Card */}
+          {/* Explore New Subjects */}
+          {unexploredSubjects.length > 0 && (
+            <View className="mb-6">
+              <View className="flex-row items-center mb-4">
+                <Text className="text-2xl mr-2">🚀</Text>
+                <Text className="text-2xl font-bold text-gray-800">
+                  Explore New Subjects
+                </Text>
+              </View>
+              <View className="flex-row flex-wrap justify-between">
+                {unexploredSubjects.map((subject) => (
+                  <UnexploredSubjectCard key={subject.key} subject={subject} />
+                ))}
+              </View>
+            </View>
+          )}
+
+          {/* Premium Banner */}
           {!displayProfile.isPremium && (
             <TouchableOpacity
-              className="bg-gradient-to-r from-purple-400 to-pink-400 rounded-2xl p-4 mt-4 shadow-lg"
-              onPress={() => navigation.navigate("Premium")}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl p-6 shadow-xl"
+              onPress={() => navigation.navigate("Premium" as any)}
+              activeOpacity={0.9}
             >
               <View className="flex-row items-center justify-between">
                 <View className="flex-1">
-                  <Text className="text-white font-bold text-lg mb-1">
+                  <Text className="text-white font-bold text-xl mb-2">
                     🚀 Go Premium!
                   </Text>
-                  <Text className="text-white/90 text-sm">
-                    • More stories & games{"\n"}• Unlock all subjects{"\n"}• No
-                    ads & offline mode
+                  <Text className="text-white/90 text-sm leading-5">
+                    • Unlock all subjects & advanced topics{"\n"}• Get detailed
+                    progress reports{"\n"}• Ad-free experience & offline mode
+                    {"\n"}• Access to exclusive games & stories
                   </Text>
                 </View>
-                <View className="bg-white/20 rounded-full p-3">
-                  <Text className="text-2xl">⭐</Text>
+                <View className="bg-white/20 rounded-full p-4 ml-4">
+                  <Text className="text-3xl">⭐</Text>
                 </View>
               </View>
             </TouchableOpacity>
           )}
-        </View>
-
-        {/* Learning Sections */}
-        <View className="px-6">
-          <Text className="text-2xl font-bold text-gray-800 mb-4">
-            Let's Learn! 📚
-          </Text>
-
-          {/* First Row */}
-          <View className="flex-row justify-between mb-4">
-            <TouchableOpacity
-              className="flex-1 bg-white rounded-2xl p-4 mr-2 shadow-md"
-              onPress={() => navigation.navigate("ReadingSubject")}
-            >
-              <Text className="text-3xl text-center mb-2">📖</Text>
-              <Text className="text-center font-bold text-gray-800">
-                Reading
-              </Text>
-              <Text className="text-center text-gray-600 text-xs mt-1">
-                Stories & Books
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="flex-1 bg-white rounded-2xl p-4 ml-2 shadow-md"
-              onPress={() => navigation.navigate("MathSubject")}
-            >
-              <Text className="text-3xl text-center mb-2">🔢</Text>
-              <Text className="text-center font-bold text-gray-800">Math</Text>
-              <Text className="text-center text-gray-600 text-xs mt-1">
-                Numbers & Fun
-              </Text>
-              {userStats?.mathStats &&
-                userStats.mathStats.totalCompleted > 0 && (
-                  <View className="absolute top-2 right-2 bg-green-500 rounded-full w-6 h-6 items-center justify-center">
-                    <Text className="text-white text-xs font-bold">
-                      {userStats.mathStats.totalCompleted}
-                    </Text>
-                  </View>
-                )}
-            </TouchableOpacity>
-          </View>
-
-          {/* Second Row */}
-          <View className="flex-row justify-between mb-4">
-            <TouchableOpacity
-              className="flex-1 bg-white rounded-2xl p-4 mr-2 shadow-md"
-              onPress={() => navigation.navigate("ScienceSubject")}
-            >
-              <Text className="text-3xl text-center mb-2">🧪</Text>
-              <Text className="text-center font-bold text-gray-800">
-                Science
-              </Text>
-              <Text className="text-center text-gray-600 text-xs mt-1">
-                Explore & Discover
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="flex-1 bg-white rounded-2xl p-4 ml-2 shadow-md"
-              onPress={() => navigation.navigate("WritingSubject")}
-            >
-              <Text className="text-3xl text-center mb-2">📝</Text>
-              <Text className="text-center font-bold text-gray-800">
-                Writing
-              </Text>
-              <Text className="text-center text-gray-600 text-xs mt-1">
-                Words & Stories
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Third Row */}
-          <View className="flex-row justify-center mb-6">
-            <TouchableOpacity
-              className="w-1/2 bg-white rounded-2xl p-4 shadow-md"
-              onPress={() => navigation.navigate("VocabularySubject")}
-            >
-              <Text className="text-3xl text-center mb-2">💭</Text>
-              <Text className="text-center font-bold text-gray-800">
-                Vocabulary
-              </Text>
-              <Text className="text-center text-gray-600 text-xs mt-1">
-                Learn New Words
-              </Text>
-            </TouchableOpacity>
-          </View>
         </View>
       </ScrollView>
 
@@ -320,39 +378,38 @@ const DashboardScreen: React.FC = () => {
             <Text className="text-xl font-bold text-center text-red-600 mb-4">
               Delete Account
             </Text>
-
             <Text className="text-gray-700 text-center mb-6">
               This action is permanent and cannot be undone. Please enter your
               password to confirm.
             </Text>
-
-            <View className="mb-4">
+            <View className="mb-6">
               <Text className="text-gray-700 mb-2 font-medium">Password</Text>
               <TextInput
-                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800 bg-gray-50"
                 placeholder="Enter your password"
+                value={password}
                 onChangeText={setPassword}
                 secureTextEntry
                 autoComplete="password"
+                editable={!loading}
               />
             </View>
-
             <View className="flex-row space-x-3">
               <TouchableOpacity
-                className="flex-1 bg-gray-300 py-3 rounded-lg mr-2"
+                className="flex-1 bg-gray-200 py-3 rounded-lg mr-2"
                 onPress={closeModal}
+                disabled={loading}
               >
                 <Text className="text-gray-700 text-center font-medium">
                   Cancel
                 </Text>
               </TouchableOpacity>
-
               <TouchableOpacity
                 className={`flex-1 py-3 rounded-lg ml-2 ${
                   loading ? "bg-gray-400" : "bg-red-500"
                 }`}
                 onPress={handleDeleteAccount}
-                disabled={loading}
+                disabled={loading || !password.trim()}
               >
                 <Text className="text-white text-center font-medium">
                   {loading ? "Deleting..." : "Delete"}

@@ -179,7 +179,7 @@ const VocabularyLevelScreen: React.FC<VocabularyLevelScreenProps> = ({
               activeOpacity={0.8}
             >
               <LinearGradient
-                colors={exercise.color}
+                colors={exercise.color as [ColorValue, ColorValue]}
                 style={styles.exerciseGradient}
               >
                 <View style={styles.exerciseContent}>

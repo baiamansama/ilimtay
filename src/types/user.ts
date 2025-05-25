@@ -46,6 +46,22 @@ export interface UserStats {
     averageScore: number;
     bestTopic: string;
   };
+  readingStats: {
+    totalCompleted: number;
+    averageScore: number;
+  };
+  scienceStats: {
+    totalCompleted: number;
+    averageScore: number;
+  };
+  writingStats: {
+    totalCompleted: number;
+    averageScore: number;
+  };
+  vocabularyStats: {
+    totalCompleted: number;
+    averageScore: number;
+  };
 }
 
 export interface UserContextType {
