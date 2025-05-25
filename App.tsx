@@ -23,6 +23,11 @@ import MathSubjectScreen from "./src/screens/math/MathSubjectScreen";
 import MathTopicScreen from "./src/screens/math/MathTopicScreen";
 import MathExerciseScreen from "./src/screens/math/MathExerciseScreen";
 
+// Vocabulary Screens
+import VocabularySubjectScreen from "./src/screens/vocabulary/VocabularySubjectScreen";
+import VocabularyLevelScreen from "./src/screens/vocabulary/VocabularyLevelScreen";
+import VocabularyExerciseScreen from "./src/screens/vocabulary/VocabularyExerciseScreen";
+
 // Navigation Types
 import {
   AuthStackParamList,
@@ -69,6 +74,18 @@ function AppStackNavigator() {
       <AppStack.Screen name="MathSubject" component={MathSubjectScreen} />
       <AppStack.Screen name="MathTopic" component={MathTopicScreen} />
       <AppStack.Screen name="MathExercise" component={MathExerciseScreen} />
+      <AppStack.Screen
+        name="VocabularySubject"
+        component={VocabularySubjectScreen}
+      />
+      <AppStack.Screen
+        name="VocabularyLevel"
+        component={VocabularyLevelScreen}
+      />
+      <AppStack.Screen
+        name="VocabularyExercise"
+        component={VocabularyExerciseScreen}
+      />
 
       {/* Placeholder screens for other subjects - you'll need to create these and import them */}
       {/* e.g.

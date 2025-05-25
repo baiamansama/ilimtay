@@ -79,6 +79,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     resetPassword,
     deleteAccount,
+    loading,
   };
 
   return (

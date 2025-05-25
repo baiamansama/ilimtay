@@ -1,4 +1,5 @@
 import { StackNavigationProp } from "@react-navigation/stack";
+import { VocabularyWord, VocabularyExerciseType } from "./vocabulary";
 
 export type AuthStackParamList = {
   Login: undefined;
@@ -17,6 +18,22 @@ export type AppStackParamList = {
   ScienceSubject: undefined;
   WritingSubject: undefined;
   VocabularySubject: undefined;
+  VocabularyLevel: {
+    levelId: string;
+    levelName: string;
+    levelEmoji: string;
+    languageCode: string;
+    languageName: string;
+  };
+  VocabularyExercise: {
+    levelId: string;
+    levelName: string;
+    levelEmoji: string;
+    languageCode: string;
+    languageName: string;
+    words: VocabularyWord[];
+    exerciseType: VocabularyExerciseType;
+  };
 };
 
 export type OnboardingStackParamList = {
@@ -65,6 +82,21 @@ export type MathExerciseNavigationProp = StackNavigationProp<
   "MathExercise"
 >;
 
+export type VocabularySubjectNavigationProp = StackNavigationProp<
+  AppStackParamList,
+  "VocabularySubject"
+>;
+
+export type VocabularyLevelNavigationProp = StackNavigationProp<
+  AppStackParamList,
+  "VocabularyLevel"
+>;
+
+export type VocabularyExerciseNavigationProp = StackNavigationProp<
+  AppStackParamList,
+  "VocabularyExercise"
+>;
+
 export interface LoginScreenProps {
   navigation: LoginScreenNavigationProp;
 }
@@ -105,6 +137,38 @@ export interface MathExerciseProps {
     params: {
       topic: string;
       difficulty: string;
+    };
+  };
+}
+
+export interface VocabularySubjectProps {
+  navigation: VocabularySubjectNavigationProp;
+}
+
+export interface VocabularyLevelProps {
+  navigation: VocabularyLevelNavigationProp;
+  route: {
+    params: {
+      levelId: string;
+      levelName: string;
+      levelEmoji: string;
+      languageCode: string;
+      languageName: string;
+    };
+  };
+}
+
+export interface VocabularyExerciseProps {
+  navigation: VocabularyExerciseNavigationProp;
+  route: {
+    params: {
+      levelId: string;
+      levelName: string;
+      levelEmoji: string;
+      languageCode: string;
+      languageName: string;
+      words: VocabularyWord[];
+      exerciseType: VocabularyExerciseType;
     };
   };
 }
