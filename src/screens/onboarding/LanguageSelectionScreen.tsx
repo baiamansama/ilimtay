@@ -8,7 +8,8 @@ import {
   Dimensions,
 } from "react-native";
 import { OnboardingLanguageProps } from "../../types/navigation";
-import { AVAILABLE_LANGUAGES, Language } from "../../types/user";
+import { AVAILABLE_LANGUAGES } from "../../constants/user";
+import { Language } from "../../types/user";
 import { useUser } from "../../contexts/UserContext";
 
 const { width } = Dimensions.get("window");

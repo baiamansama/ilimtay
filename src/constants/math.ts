@@ -1,0 +1,38 @@
+export const mathTopics = [
+  {
+    id: 1,
+    name: "Addition",
+    emoji: "➕",
+    description: "Learn to add numbers",
+    color: "from-green-400 to-blue-500",
+    bgColor: "bg-green-50",
+    borderColor: "border-green-200",
+  },
+  {
+    id: 2,
+    name: "Subtraction",
+    emoji: "➖",
+    description: "Learn to subtract numbers",
+    color: "from-red-400 to-pink-500",
+    bgColor: "bg-red-50",
+    borderColor: "border-red-200",
+  },
+  {
+    id: 3,
+    name: "Multiplication",
+    emoji: "✖️",
+    description: "Learn to multiply numbers",
+    color: "from-purple-400 to-indigo-500",
+    bgColor: "bg-purple-50",
+    borderColor: "border-purple-200",
+  },
+  {
+    id: 4,
+    name: "Division",
+    emoji: "➗",
+    description: "Learn to divide numbers",
+    color: "from-orange-400 to-red-500",
+    bgColor: "bg-orange-50",
+    borderColor: "border-orange-200",
+  },
+];

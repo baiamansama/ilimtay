@@ -5,29 +5,40 @@ import { StatusBar } from "expo-status-bar";
 
 import { AuthProvider, useAuth } from "./src/contexts/AuthContext";
 import { UserProvider, useUser } from "./src/contexts/UserContext";
-import LoginScreen from "./src/screens/LoginScreen";
-import SignupScreen from "./src/screens/SignupScreen";
+
+// Screen Imports
+import LoginScreen from "./src/screens/auth/LoginScreen";
+import SignupScreen from "./src/screens/auth/SignupScreen";
 import DashboardScreen from "./src/screens/DashboardScreen";
+import ProfileScreen from "./src/screens/profile/ProfileScreen"; // Added
+import ProfileEditScreen from "./src/screens/profile/ProfileEditScreen"; // Added
+
+// Onboarding Screens
 import LanguageSelectionScreen from "./src/screens/onboarding/LanguageSelectionScreen";
 import GenderSelectionScreen from "./src/screens/onboarding/GenderSelectionScreen";
 import GradeSelectionScreen from "./src/screens/onboarding/GradeSelectionScreen";
+
+// Math Screens
+import MathSubjectScreen from "./src/screens/math/MathSubjectScreen";
+import MathTopicScreen from "./src/screens/math/MathTopicScreen";
+import MathExerciseScreen from "./src/screens/math/MathExerciseScreen";
+
+// Navigation Types
 import {
   AuthStackParamList,
   AppStackParamList,
   OnboardingStackParamList,
 } from "./src/types/navigation";
 
+// Create Stack Navigators
 const AuthStack = createStackNavigator<AuthStackParamList>();
 const OnboardingStack = createStackNavigator<OnboardingStackParamList>();
 const AppStack = createStackNavigator<AppStackParamList>();
 
+// Navigators
 function AuthStackNavigator() {
   return (
-    <AuthStack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
+    <AuthStack.Navigator screenOptions={{ headerShown: false }}>
       <AuthStack.Screen name="Login" component={LoginScreen} />
       <AuthStack.Screen name="Signup" component={SignupScreen} />
     </AuthStack.Navigator>
@@ -36,11 +47,7 @@ function AuthStackNavigator() {
 
 function OnboardingStackNavigator() {
   return (
-    <OnboardingStack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
+    <OnboardingStack.Navigator screenOptions={{ headerShown: false }}>
       <OnboardingStack.Screen
         name="Language"
         component={LanguageSelectionScreen}
@@ -53,19 +60,37 @@ function OnboardingStackNavigator() {
 
 function AppStackNavigator() {
   return (
-    <AppStack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
+    <AppStack.Navigator screenOptions={{ headerShown: false }}>
       <AppStack.Screen name="Dashboard" component={DashboardScreen} />
+      <AppStack.Screen name="Profile" component={ProfileScreen} />
+      <AppStack.Screen name="ProfileEdit" component={ProfileEditScreen} />
+
+      {/* Math Screens */}
+      <AppStack.Screen name="MathSubject" component={MathSubjectScreen} />
+      <AppStack.Screen name="MathTopic" component={MathTopicScreen} />
+      <AppStack.Screen name="MathExercise" component={MathExerciseScreen} />
+
+      {/* Placeholder screens for other subjects - you'll need to create these and import them */}
+      {/* e.g.
+      <AppStack.Screen name="ReadingSubject" component={ReadingSubjectScreen} />
+      <AppStack.Screen name="ScienceSubject" component={ScienceSubjectScreen} />
+      <AppStack.Screen name="WritingSubject" component={WritingSubjectScreen} />
+      <AppStack.Screen name="VocabularySubject" component={VocabularySubjectScreen} />
+      */}
     </AppStack.Navigator>
   );
 }
 
+// App Content Logic
 function AppContent() {
-  const { currentUser } = useAuth();
-  const { isProfileComplete } = useUser();
+  const { currentUser, loading: authLoading } = useAuth(); // Added authLoading
+  const { isProfileComplete, loading: userLoading } = useUser(); // Added userLoading
+
+  // Optional: Add a loading indicator while auth and user profile are being checked
+  if (authLoading || (currentUser && userLoading)) {
+    // You might want a more sophisticated loading screen here
+    return null; // Or <ActivityIndicator size="large" />;
+  }
 
   return (
     <NavigationContainer>
@@ -80,6 +105,7 @@ function AppContent() {
   );
 }
 
+// Main App Component
 export default function App() {
   return (
     <AuthProvider>

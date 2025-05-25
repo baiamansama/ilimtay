@@ -7,7 +7,7 @@ import {
   Alert,
 } from "react-native";
 import { OnboardingGradeProps } from "../../types/navigation";
-import { AVAILABLE_GRADES } from "../../types/user";
+import { AVAILABLE_GRADES } from "../../constants/user";
 import { useUser } from "../../contexts/UserContext";
 
 const GradeSelectionScreen: React.FC<OnboardingGradeProps> = ({

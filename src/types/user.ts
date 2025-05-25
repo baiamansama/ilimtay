@@ -1,3 +1,5 @@
+import { ExerciseResult } from "./math";
+import { ReactNode } from "react";
 export interface UserProfile {
   uid: string;
   email: string;
@@ -15,23 +17,53 @@ export interface Language {
   flag: string;
 }
 
-export const AVAILABLE_LANGUAGES: Language[] = [
-  { code: "en", name: "English", nativeName: "English", flag: "🇺🇸" },
-  { code: "ru", name: "Russian", nativeName: "русский", flag: "🇷🇺" },
-  { code: "ky", name: "Kyrgyz", nativeName: "кыргыз", flag: "🇰🇬" },
-  { code: "uz", name: "Uzbek", nativeName: "oʻzbek", flag: "🇺🇿" },
-  { code: "kk", name: "Kazakh", nativeName: "қазақ", flag: "🇰🇿" },
-];
-
 export interface Gender {
   value: "boy" | "girl";
   emoji: string;
   label: string;
 }
 
-export const AVAILABLE_GENDERS: Gender[] = [
-  { value: "boy", emoji: "🧑🏻‍🦱", label: "Boy" },
-  { value: "girl", emoji: "👩🏻", label: "Girl" },
-];
+export interface UserProfile {
+  uid: string;
+  email: string;
+  emoji?: string;
+  language: string;
+  languageCode?: string;
+  gender: "boy" | "girl";
+  grade: number;
+  isPremium?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+export interface UserStats {
+  totalExercises: number;
+  averageScore: number;
+  favoriteSubject: string;
+  streak: number;
+  lastActive: Date;
+  mathStats: {
+    totalCompleted: number;
+    averageScore: number;
+    bestTopic: string;
+  };
+}
 
-export const AVAILABLE_GRADES = [1, 2, 3, 4, 5, 6];
+export interface UserContextType {
+  userProfile: UserProfile | null;
+  userStats: UserStats | null;
+  recentResults: ExerciseResult[];
+  isProfileComplete: boolean;
+  loading: boolean;
+  onboardingData: Partial<UserProfile>;
+  updateUserProfile: (updates: Partial<UserProfile>) => Promise<void>;
+  setOnboardingData: (data: Partial<UserProfile>) => void;
+  clearOnboardingData: () => void;
+  saveExerciseResult: (
+    result: Omit<ExerciseResult, "id" | "userId">
+  ) => Promise<void>;
+  fetchUserStats: () => Promise<void>;
+  fetchRecentResults: () => Promise<void>;
+}
+export interface UserProviderProps {
+  children: ReactNode;
+}

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, SafeAreaView } from "react-native";
 import { OnboardingGenderProps } from "../../types/navigation";
-import { AVAILABLE_GENDERS } from "../../types/user";
+import { AVAILABLE_GENDERS } from "../../constants/user";
 import { useUser } from "../../contexts/UserContext";
 
 const GenderSelectionScreen: React.FC<OnboardingGenderProps> = ({
