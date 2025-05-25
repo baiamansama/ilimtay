@@ -1,6 +1,8 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { UserProfile } from "../types/user";
 import { useAuth } from "./AuthContext";
+import { db } from "../config/firebase";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
 interface UserContextType {
   userProfile: UserProfile | null;
@@ -32,7 +34,32 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     {}
   );
 
-  const updateUserProfile = (profile: Partial<UserProfile>) => {
+  // Fetch user profile from Firestore when currentUser changes
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (currentUser) {
+        try {
+          const userDocRef = doc(db, "users", currentUser.uid);
+          const userDoc = await getDoc(userDocRef);
+          if (userDoc.exists()) {
+            setUserProfile(userDoc.data() as UserProfile);
+          } else {
+            // If no profile exists, set to null (onboarding will handle creating it)
+            setUserProfile(null);
+          }
+        } catch (error) {
+          console.error("Error fetching user profile from Firestore:", error);
+          setUserProfile(null);
+        }
+      } else {
+        setUserProfile(null);
+      }
+    };
+
+    fetchUserProfile();
+  }, [currentUser]);
+
+  const updateUserProfile = async (profile: Partial<UserProfile>) => {
     if (currentUser) {
       const updatedProfile: UserProfile = {
         uid: currentUser.uid,
@@ -44,8 +71,14 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         updatedAt: new Date(),
         ...profile,
       };
-      setUserProfile(updatedProfile);
-      // In a real app save this to Firestore here
+
+      try {
+        const userDocRef = doc(db, "users", currentUser.uid);
+        await setDoc(userDocRef, updatedProfile, { merge: true });
+        setUserProfile(updatedProfile);
+      } catch (error) {
+        console.error("Error saving user profile to Firestore:", error);
+      }
     }
   };
 
@@ -59,17 +92,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     !!userProfile.gender &&
     typeof userProfile.grade === "number" &&
     userProfile.grade > 0;
-
-  useEffect(() => {
-    if (currentUser && !userProfile) {
-      // In a real app, you would fetch user profile from Firestore here
-      // For now, we'll just check if we have stored data
-      const hasStoredProfile = false; // This would be checked from storage
-      if (!hasStoredProfile) {
-        setUserProfile(null);
-      }
-    }
-  }, [currentUser]);
 
   const value: UserContextType = {
     userProfile,

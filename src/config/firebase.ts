@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import Constants from "expo-constants";
-
+import { getFirestore } from "firebase/firestore";
 const firebaseConfig = {
   apiKey: Constants.expoConfig?.extra?.firebaseApiKey,
   authDomain: Constants.expoConfig?.extra?.firebaseAuthDomain,
@@ -16,4 +16,5 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
+export const db = getFirestore(app);
 export default app;
