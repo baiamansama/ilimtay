@@ -4,12 +4,21 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { StatusBar } from "expo-status-bar";
 
 import { AuthProvider, useAuth } from "./src/contexts/AuthContext";
+import { UserProvider, useUser } from "./src/contexts/UserContext";
 import LoginScreen from "./src/screens/LoginScreen";
 import SignupScreen from "./src/screens/SignupScreen";
 import DashboardScreen from "./src/screens/DashboardScreen";
-import { AuthStackParamList, AppStackParamList } from "./src/types/navigation";
+import LanguageSelectionScreen from "./src/screens/onboarding/LanguageSelectionScreen";
+import GenderSelectionScreen from "./src/screens/onboarding/GenderSelectionScreen";
+import GradeSelectionScreen from "./src/screens/onboarding/GradeSelectionScreen";
+import {
+  AuthStackParamList,
+  AppStackParamList,
+  OnboardingStackParamList,
+} from "./src/types/navigation";
 
 const AuthStack = createStackNavigator<AuthStackParamList>();
+const OnboardingStack = createStackNavigator<OnboardingStackParamList>();
 const AppStack = createStackNavigator<AppStackParamList>();
 
 function AuthStackNavigator() {
@@ -22,6 +31,23 @@ function AuthStackNavigator() {
       <AuthStack.Screen name="Login" component={LoginScreen} />
       <AuthStack.Screen name="Signup" component={SignupScreen} />
     </AuthStack.Navigator>
+  );
+}
+
+function OnboardingStackNavigator() {
+  return (
+    <OnboardingStack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <OnboardingStack.Screen
+        name="Language"
+        component={LanguageSelectionScreen}
+      />
+      <OnboardingStack.Screen name="Gender" component={GenderSelectionScreen} />
+      <OnboardingStack.Screen name="Grade" component={GradeSelectionScreen} />
+    </OnboardingStack.Navigator>
   );
 }
 
@@ -39,10 +65,17 @@ function AppStackNavigator() {
 
 function AppContent() {
   const { currentUser } = useAuth();
+  const { isProfileComplete } = useUser();
 
   return (
     <NavigationContainer>
-      {currentUser ? <AppStackNavigator /> : <AuthStackNavigator />}
+      {!currentUser ? (
+        <AuthStackNavigator />
+      ) : !isProfileComplete ? (
+        <OnboardingStackNavigator />
+      ) : (
+        <AppStackNavigator />
+      )}
     </NavigationContainer>
   );
 }
@@ -50,8 +83,10 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
-      <StatusBar style="auto" />
+      <UserProvider>
+        <AppContent />
+        <StatusBar style="auto" />
+      </UserProvider>
     </AuthProvider>
   );
 }

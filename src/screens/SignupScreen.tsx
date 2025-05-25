@@ -48,18 +48,21 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-gray-50"
+      className="flex-1 bg-gradient-to-br from-green-100 to-blue-100"
     >
       <View className="flex-1 justify-center px-6">
-        <View className="bg-white rounded-lg p-6 shadow-lg">
-          <Text className="text-3xl font-bold text-center text-gray-800 mb-8">
-            Create Account
+        <View className="bg-white rounded-2xl p-8 shadow-lg">
+          <Text className="text-3xl font-bold text-center text-gray-800 mb-2">
+            Join the Fun! 🎉
+          </Text>
+          <Text className="text-center text-gray-600 mb-8">
+            Create your learning adventure account
           </Text>
 
           <View className="mb-4">
             <Text className="text-gray-700 mb-2 font-medium">Email</Text>
             <TextInput
-              className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+              className="border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-800 focus:border-green-400"
               placeholder="Enter your email"
               value={email}
               onChangeText={setEmail}
@@ -72,7 +75,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
           <View className="mb-4">
             <Text className="text-gray-700 mb-2 font-medium">Password</Text>
             <TextInput
-              className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+              className="border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-800 focus:border-green-400"
               placeholder="Enter your password"
               value={password}
               onChangeText={setPassword}
@@ -86,7 +89,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
               Confirm Password
             </Text>
             <TextInput
-              className="border border-gray-300 rounded-lg px-4 py-3 text-gray-800"
+              className="border-2 border-gray-200 rounded-xl px-4 py-3 text-gray-800 focus:border-green-400"
               placeholder="Confirm your password"
               value={confirmPassword}
               onChangeText={setConfirmPassword}
@@ -96,14 +99,14 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
           </View>
 
           <TouchableOpacity
-            className={`py-4 rounded-lg mb-4 ${
+            className={`py-4 rounded-xl mb-4 ${
               loading ? "bg-gray-400" : "bg-green-500"
             }`}
             onPress={handleSubmit}
             disabled={loading}
           >
             <Text className="text-white text-center font-semibold text-lg">
-              {loading ? "Creating Account..." : "Sign Up"}
+              {loading ? "Creating Account..." : "Sign Up 🌟"}
             </Text>
           </TouchableOpacity>
 
@@ -112,7 +115,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({ navigation }) => {
             onPress={() => navigation.navigate("Login")}
           >
             <Text className="text-blue-500 text-center">
-              Already have an account? Sign In
+              Already have an account? Sign In 👈
             </Text>
           </TouchableOpacity>
         </View>

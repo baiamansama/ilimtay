@@ -7,6 +7,7 @@ import {
   deleteUser,
   reauthenticateWithCredential,
   EmailAuthProvider,
+  sendPasswordResetEmail,
   User,
 } from "firebase/auth";
 import { auth } from "../config/firebase";
@@ -36,6 +37,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = (): Promise<void> => {
     return signOut(auth);
+  };
+
+  const resetPassword = (email: string): Promise<void> => {
+    return sendPasswordResetEmail(auth, email);
   };
 
   const deleteAccount = async (password: string): Promise<void> => {
@@ -72,6 +77,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signup,
     login,
     logout,
+    resetPassword,
     deleteAccount,
   };
 
