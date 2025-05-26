@@ -1,18 +1,74 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, SafeAreaView } from "react-native";
+import { View, StyleSheet, Animated, Dimensions, Platform } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { useTranslation } from "react-i18next";
 import { OnboardingGenderProps } from "../../types/navigation";
 import { AVAILABLE_GENDERS } from "../../constants/user";
 import { useUser } from "../../contexts/UserContext";
+import { useTheme } from "../../contexts/ThemeContext";
+import {
+  Button,
+  Card,
+  H1,
+  Body,
+  Caption,
+  ProgressBar,
+  EmojiBadge,
+} from "../../components/ui/StyledComponents";
+import { Ionicons } from "@expo/vector-icons";
+
+const { width: screenWidth } = Dimensions.get("window");
 
 const GenderSelectionScreen: React.FC<OnboardingGenderProps> = ({
   navigation,
 }) => {
+  const { t } = useTranslation();
+  const { colors, spacing, borderRadius, isDarkMode, animation } = useTheme();
   const { setOnboardingData, onboardingData } = useUser();
+
   const [selectedGender, setSelectedGender] = useState<"boy" | "girl" | "">(
     onboardingData.gender || ""
   );
 
-  const handleGenderSelect = (gender: "boy" | "girl") => {
+  // Animation values
+  const [scaleAnimations] = useState(() =>
+    AVAILABLE_GENDERS.map(() => new Animated.Value(1))
+  );
+  const [fadeAnim] = useState(new Animated.Value(0));
+  const [slideAnim] = useState(new Animated.Value(50));
+
+  // Animate in on mount
+  React.useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: animation.normal,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: animation.normal,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  const handleGenderSelect = (gender: "boy" | "girl", index: number) => {
+    // Animate the selection
+    Animated.sequence([
+      Animated.timing(scaleAnimations[index], {
+        toValue: 0.95,
+        duration: animation.fast / 2,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnimations[index], {
+        toValue: 1,
+        duration: animation.fast / 2,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
     setSelectedGender(gender);
     setOnboardingData({ ...onboardingData, gender });
   };
@@ -23,82 +79,256 @@ const GenderSelectionScreen: React.FC<OnboardingGenderProps> = ({
     }
   };
 
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
   return (
-    <SafeAreaView className="flex-1 bg-gradient-to-br from-blue-100 to-green-100">
-      <View className="flex-1 px-6 py-8">
-        {/* Progress bar */}
-        <View className="mb-8">
-          <View className="flex-row justify-between items-center mb-2">
-            <Text className="text-sm text-gray-600">Step 2 of 3</Text>
-            <Text className="text-sm text-blue-600 font-semibold">67%</Text>
-          </View>
-          <View className="h-2 bg-gray-200 rounded-full">
-            <View
-              className="h-2 bg-blue-500 rounded-full"
-              style={{ width: "67%" }}
-            />
-          </View>
-        </View>
-
-        {/* Title */}
-        <View className="mb-12">
-          <Text className="text-3xl font-bold text-center text-gray-800 mb-2">
-            Tell us about yourself! 😊
-          </Text>
-          <Text className="text-center text-gray-600 text-lg">
-            Are you a boy or a girl?
-          </Text>
-        </View>
-
-        {/* Gender Options */}
-        <View className="flex-1 justify-center">
-          <View className="flex-row justify-center space-x-8">
-            {AVAILABLE_GENDERS.map((gender) => (
-              <TouchableOpacity
-                key={gender.value}
-                className={`items-center p-6 rounded-3xl ${
-                  selectedGender === gender.value
-                    ? "bg-blue-500 shadow-lg"
-                    : "bg-white shadow-md"
-                }`}
-                onPress={() => handleGenderSelect(gender.value)}
-                style={{ width: 120, height: 140 }}
-              >
-                <Text className="text-6xl mb-2">{gender.emoji}</Text>
-                <Text
-                  className={`text-lg font-semibold ${
-                    selectedGender === gender.value
-                      ? "text-white"
-                      : "text-gray-800"
-                  }`}
-                >
-                  {gender.label}
-                </Text>
-                {selectedGender === gender.value && (
-                  <View className="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full items-center justify-center">
-                    <Text className="text-white text-sm">✓</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Continue Button */}
-        <TouchableOpacity
-          className={`py-4 rounded-2xl mt-8 ${
-            selectedGender ? "bg-blue-500" : "bg-gray-300"
-          }`}
-          onPress={handleContinue}
-          disabled={!selectedGender}
+    <LinearGradient
+      colors={
+        isDarkMode
+          ? [colors.background, colors.surface]
+          : [colors.playful2, colors.playful3]
+      }
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <Animated.View
+          style={[
+            styles.content,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
         >
-          <Text className="text-white text-center font-semibold text-lg">
-            Continue 🎯
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+          {/* Header with back button */}
+          <View style={styles.header}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onPress={handleBack}
+              leftIcon={
+                <Ionicons name="arrow-back" size={24} color={colors.text} />
+              }
+              style={styles.backButton} // e.g. alignSelf
+              accessibilityLabel={t("common.back")}
+            >
+              {t("common.back")}
+            </Button>
+          </View>
+
+          {/* Progress Section */}
+          <View style={styles.progressSection}>
+            <View style={styles.progressInfo}>
+              <Caption>
+                {t("onboarding.gender.step", { current: 2, total: 3 })}
+              </Caption>
+              <Caption color={colors.primary} weight="semibold">
+                {t("onboarding.gender.progress", { percent: 67 })}
+              </Caption>
+            </View>
+            <ProgressBar progress={0.67} color={colors.primary} />
+          </View>
+
+          {/* Title Section */}
+          <View style={styles.titleSection}>
+            <H1 align="center" style={styles.title}>
+              {t("onboarding.gender.title")}
+            </H1>
+            <Body
+              align="center"
+              color={colors.textSecondary}
+              style={styles.subtitle}
+            >
+              {t("onboarding.gender.subtitle")}
+            </Body>
+          </View>
+
+          {/* Gender Options */}
+          <View style={styles.optionsContainer}>
+            {AVAILABLE_GENDERS.map((gender, index) => {
+              const isSelected = selectedGender === gender.value;
+
+              return (
+                <Animated.View
+                  key={gender.value}
+                  style={[
+                    styles.optionWrapper,
+                    {
+                      transform: [{ scale: scaleAnimations[index] }],
+                    },
+                  ]}
+                >
+                  <Card variant={isSelected ? "elevated" : "default"}>
+                    <Button
+                      variant="ghost"
+                      onPress={() => handleGenderSelect(gender.value, index)}
+                      style={styles.optionButton}
+                    >
+                      <View style={styles.optionContent}>
+                        <EmojiBadge
+                          emoji={gender.emoji}
+                          size="lg"
+                          backgroundColor={
+                            isSelected
+                              ? isDarkMode
+                                ? colors.primaryLight
+                                : colors.primary
+                              : colors.surfaceVariant
+                          }
+                        />
+                        <Body
+                          weight="semibold"
+                          color={isSelected ? colors.primary : colors.text}
+                          style={styles.optionLabel}
+                        >
+                          {t(`onboarding.gender.${gender.value}`)}
+                        </Body>
+                      </View>
+                    </Button>
+
+                    {isSelected && (
+                      <View
+                        style={[
+                          styles.checkmark,
+                          { backgroundColor: colors.success },
+                        ]}
+                      >
+                        <Ionicons name="checkmark" size={16} color="white" />
+                      </View>
+                    )}
+                  </Card>
+                </Animated.View>
+              );
+            })}
+          </View>
+
+          {/* Continue Button */}
+          <View style={styles.buttonContainer}>
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              gradient
+              disabled={!selectedGender}
+              onPress={handleContinue}
+              rightIcon={
+                <Ionicons
+                  name="arrow-forward"
+                  size={20}
+                  color={colors.textOnPrimary}
+                />
+              }
+            >
+              {t("common.continue")} 🎯
+            </Button>
+          </View>
+        </Animated.View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  backButton: {
+    alignSelf: "flex-start",
+  },
+  progressSection: {
+    marginBottom: 32,
+  },
+  progressInfo: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  titleSection: {
+    marginBottom: 48,
+  },
+  title: {
+    marginBottom: 12,
+  },
+  subtitle: {
+    fontSize: 18,
+  },
+  optionsContainer: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 24,
+  },
+  optionWrapper: {
+    position: "relative",
+  },
+  optionCard: {
+    position: "relative",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  optionButton: {
+    padding: 0,
+    backgroundColor: "transparent",
+  },
+  optionContent: {
+    alignItems: "center",
+    paddingVertical: 24,
+    paddingHorizontal: 32,
+  },
+  optionLabel: {
+    marginTop: 16,
+    fontSize: 20,
+  },
+  checkmark: {
+    position: "absolute",
+    top: -8,
+    right: -8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  buttonContainer: {
+    marginTop: 32,
+    marginBottom: 24,
+  },
+});
 
 export default GenderSelectionScreen;

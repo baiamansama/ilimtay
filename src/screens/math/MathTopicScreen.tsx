@@ -7,9 +7,11 @@ import {
   SafeAreaView,
 } from "react-native";
 import { MathTopicProps } from "../../types/navigation";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const MathTopicScreen: React.FC<MathTopicProps> = ({ navigation, route }) => {
   const { topic, topicEmoji } = route.params;
+  const { colors } = useTheme();
 
   const difficulties = [
     {
@@ -78,30 +80,32 @@ const MathTopicScreen: React.FC<MathTopicProps> = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gradient-to-b from-blue-100 to-purple-100">
+    <SafeAreaView className={`flex-1 ${colors.background}`}>
       <ScrollView className="flex-1">
         {/* Header */}
-        <View className="bg-white rounded-b-3xl shadow-lg px-6 py-8 mb-6">
+        <View
+          className={`${colors.card} rounded-b-3xl shadow-lg px-6 py-8 mb-6`}
+        >
           <View className="flex-row items-center mb-4">
             <TouchableOpacity
-              className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center mr-4"
+              className={`w-10 h-10 rounded-full ${colors.secondary} items-center justify-center mr-4`}
               onPress={() => navigation.goBack()}
             >
-              <Text className="text-xl">←</Text>
+              <Text className={`text-xl ${colors.text}`}>←</Text>
             </TouchableOpacity>
             <View className="flex-1">
-              <Text className="text-3xl font-bold text-gray-800">
+              <Text className={`text-3xl font-bold ${colors.text}`}>
                 {topicEmoji} {topic}
               </Text>
-              <Text className="text-gray-600 mt-1">
+              <Text className={`${colors.textSecondary} mt-1`}>
                 Choose your difficulty level
               </Text>
             </View>
           </View>
 
           {/* Motivational Message */}
-          <View className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl p-4">
-            <Text className="text-purple-800 font-medium text-center">
+          <View className={`${colors.surfaceVariant} rounded-2xl p-4`}>
+            <Text className={`${colors.primary} font-medium text-center`}>
               🎯 Pick the level that feels right for you! 🎯
             </Text>
           </View>
@@ -112,38 +116,46 @@ const MathTopicScreen: React.FC<MathTopicProps> = ({ navigation, route }) => {
           {difficulties.map((difficulty, index) => (
             <TouchableOpacity
               key={difficulty.id}
-              className={`${difficulty.bgColor} rounded-2xl p-6 mb-4 shadow-lg border-2 ${difficulty.borderColor}`}
+              className={`${colors.card} rounded-2xl p-6 mb-4 shadow-lg ${colors.border} border-2`}
               onPress={() => handleDifficultyPress(difficulty.level)}
             >
               <View className="flex-row items-center">
-                <View className="w-16 h-16 rounded-full bg-white items-center justify-center mr-4 shadow-md">
+                <View
+                  className={`w-16 h-16 rounded-full ${colors.surface} items-center justify-center mr-4 shadow-md`}
+                >
                   <Text className="text-2xl">{difficulty.emoji}</Text>
                 </View>
 
                 <View className="flex-1">
-                  <Text className="text-2xl font-bold text-gray-800 mb-1">
+                  <Text className={`text-2xl font-bold ${colors.text} mb-1`}>
                     {difficulty.level}
                   </Text>
-                  <Text className="text-gray-600 mb-2">
+                  <Text className={`${colors.textSecondary} mb-2`}>
                     {difficulty.description}
                   </Text>
 
                   {/* Example Problem */}
-                  <View className="bg-white/70 rounded-lg px-3 py-2">
-                    <Text className="text-gray-700 font-medium">
+                  <View
+                    className={`${colors.surfaceVariant} rounded-lg px-3 py-2`}
+                  >
+                    <Text className={`${colors.text} font-medium`}>
                       Example: {difficulty.examples}
                     </Text>
                   </View>
                 </View>
 
                 {/* Arrow */}
-                <View className="w-8 h-8 rounded-full bg-white items-center justify-center shadow-sm">
-                  <Text className="text-gray-600">→</Text>
+                <View
+                  className={`w-8 h-8 rounded-full ${colors.surface} items-center justify-center shadow-sm`}
+                >
+                  <Text className={`${colors.textSecondary}`}>→</Text>
                 </View>
               </View>
 
               {/* Progress Stars */}
-              <View className="flex-row justify-center mt-4 pt-4 border-t border-white/50">
+              <View
+                className={`flex-row justify-center mt-4 pt-4 ${colors.divider} border-t`}
+              >
                 <View className="flex-row space-x-1">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Text key={star} className="text-yellow-400 text-lg">
@@ -151,7 +163,9 @@ const MathTopicScreen: React.FC<MathTopicProps> = ({ navigation, route }) => {
                     </Text>
                   ))}
                 </View>
-                <Text className="text-gray-600 ml-2 text-sm self-center">
+                <Text
+                  className={`${colors.textSecondary} ml-2 text-sm self-center`}
+                >
                   5 exercises
                 </Text>
               </View>
@@ -159,7 +173,7 @@ const MathTopicScreen: React.FC<MathTopicProps> = ({ navigation, route }) => {
           ))}
 
           {/* Encouragement Card */}
-          <View className="bg-gradient-to-r from-blue-400 to-purple-500 rounded-2xl p-6 mb-6 shadow-lg">
+          <View className={`${colors.primary} rounded-2xl p-6 mb-6 shadow-lg`}>
             <Text className="text-white text-center font-bold text-lg mb-2">
               🚀 You've Got This! 🚀
             </Text>

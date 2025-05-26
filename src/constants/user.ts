@@ -8,11 +8,11 @@ export const AVAILABLE_GENDERS: Gender[] = [
 export const AVAILABLE_GRADES = [1, 2, 3, 4, 5, 6];
 
 export const AVAILABLE_LANGUAGES: Language[] = [
-  { code: "en", name: "English", nativeName: "English", flag: "🇺🇸" },
-  { code: "ru", name: "Russian", nativeName: "русский", flag: "🇷🇺" },
-  { code: "ky", name: "Kyrgyz", nativeName: "кыргыз", flag: "🇰🇬" },
-  { code: "uz", name: "Uzbek", nativeName: "oʻzbek", flag: "🇺🇿" },
-  { code: "kk", name: "Kazakh", nativeName: "қазақ", flag: "🇰🇿" },
+  { code: "en", name: "english", nativeName: "English", flag: "🇺🇸" },
+  { code: "ru", name: "russian", nativeName: "русский", flag: "🇷🇺" },
+  { code: "ky", name: "kyrgyz", nativeName: "кыргыз", flag: "🇰🇬" },
+  { code: "uz", name: "uzbek", nativeName: "oʻzbek", flag: "🇺🇿" },
+  { code: "kk", name: "kazakh", nativeName: "қазақ", flag: "🇰🇿" },
 ];
 
 export const AVAILABLE_AVATARS: Record<string, string[]> = {

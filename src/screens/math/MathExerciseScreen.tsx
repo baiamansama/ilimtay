@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { MathExerciseProps } from "../../types/navigation";
 import { useUser } from "../../contexts/UserContext";
+import { useTheme } from "../../contexts/ThemeContext";
 import { Question } from "../../types/math";
 
 const MathExerciseScreen: React.FC<MathExerciseProps> = ({
@@ -17,6 +18,7 @@ const MathExerciseScreen: React.FC<MathExerciseProps> = ({
 }) => {
   const { topic, difficulty } = route.params;
   const { saveExerciseResult } = useUser();
+  const { colors } = useTheme();
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -326,8 +328,12 @@ const MathExerciseScreen: React.FC<MathExerciseProps> = ({
 
   if (questions.length === 0) {
     return (
-      <SafeAreaView className="flex-1 bg-gradient-to-b from-blue-100 to-purple-100 justify-center items-center">
-        <Text className="text-2xl">Loading questions... 🤔</Text>
+      <SafeAreaView
+        className={`flex-1 ${colors.background} justify-center items-center`}
+      >
+        <Text className={`text-2xl ${colors.text}`}>
+          Loading questions... 🤔
+        </Text>
       </SafeAreaView>
     );
   }
@@ -335,36 +341,38 @@ const MathExerciseScreen: React.FC<MathExerciseProps> = ({
   const currentQuestion = questions[currentQuestionIndex];
 
   return (
-    <SafeAreaView className="flex-1 bg-gradient-to-b from-blue-100 to-purple-100">
+    <SafeAreaView className={`flex-1 ${colors.background}`}>
       {/* Header */}
-      <View className="bg-white rounded-b-3xl shadow-lg px-6 py-6 mb-6">
+      <View className={`${colors.card} rounded-b-3xl shadow-lg px-6 py-6 mb-6`}>
         <View className="flex-row items-center justify-between mb-4">
           <TouchableOpacity
-            className="w-10 h-10 rounded-full bg-gray-200 items-center justify-center"
+            className={`w-10 h-10 rounded-full ${colors.secondary} items-center justify-center`}
             onPress={() => navigation.goBack()}
           >
-            <Text className="text-xl">←</Text>
+            <Text className={`text-xl ${colors.text}`}>←</Text>
           </TouchableOpacity>
 
           <View className="flex-1 mx-4">
-            <Text className="text-lg font-bold text-gray-800 text-center">
+            <Text className={`text-lg font-bold ${colors.text} text-center`}>
               {topic} - {difficulty}
             </Text>
-            <Text className="text-gray-600 text-center">
+            <Text className={`${colors.textSecondary} text-center`}>
               Question {currentQuestionIndex + 1} of {questions.length}
             </Text>
           </View>
 
           <View className="items-center">
-            <Text className="text-2xl font-bold text-blue-600">{timeLeft}</Text>
-            <Text className="text-xs text-gray-600">seconds</Text>
+            <Text className={`text-2xl font-bold ${colors.primary}`}>
+              {timeLeft}
+            </Text>
+            <Text className={`text-xs ${colors.textTertiary}`}>seconds</Text>
           </View>
         </View>
 
         {/* Progress Bar */}
-        <View className="bg-gray-200 rounded-full h-2 mb-2">
+        <View className={`${colors.secondary} rounded-full h-2 mb-2`}>
           <View
-            className="bg-blue-500 h-2 rounded-full"
+            className={`${colors.primary} h-2 rounded-full`}
             style={{
               width: `${
                 ((currentQuestionIndex + 1) / questions.length) * 100
@@ -373,19 +381,23 @@ const MathExerciseScreen: React.FC<MathExerciseProps> = ({
           />
         </View>
 
-        <Text className="text-center text-gray-600 text-sm">
+        <Text className={`text-center ${colors.textSecondary} text-sm`}>
           Score: {score}/{questions.length}
         </Text>
       </View>
 
       {/* Question */}
       <Animated.View style={{ opacity: fadeAnim }} className="flex-1 px-6">
-        <View className="bg-white rounded-3xl p-8 mb-6 shadow-lg">
-          <Text className="text-center text-gray-600 mb-4">What is</Text>
-          <Text className="text-4xl font-bold text-center text-gray-800 mb-4">
+        <View className={`${colors.card} rounded-3xl p-8 mb-6 shadow-lg`}>
+          <Text className={`text-center ${colors.textSecondary} mb-4`}>
+            What is
+          </Text>
+          <Text
+            className={`text-4xl font-bold text-center ${colors.text} mb-4`}
+          >
             {currentQuestion.question}
           </Text>
-          <Text className="text-center text-gray-600">?</Text>
+          <Text className={`text-center ${colors.textSecondary}`}>?</Text>
         </View>
 
         {/* Answer Options */}
@@ -399,10 +411,10 @@ const MathExerciseScreen: React.FC<MathExerciseProps> = ({
                     ? "bg-green-100 border-green-400"
                     : selectedAnswer === option
                     ? "bg-red-100 border-red-400"
-                    : "bg-gray-100 border-gray-300"
+                    : `${colors.surfaceVariant} ${colors.border}`
                   : selectedAnswer === option
-                  ? "bg-blue-100 border-blue-400"
-                  : "bg-white border-gray-200"
+                  ? `${colors.primary} bg-opacity-20 ${colors.primary} border-opacity-60`
+                  : `${colors.card} ${colors.border}`
               }`}
               onPress={() => handleAnswerSelect(option)}
               disabled={showResult}
@@ -414,10 +426,10 @@ const MathExerciseScreen: React.FC<MathExerciseProps> = ({
                       ? "text-green-800"
                       : selectedAnswer === option
                       ? "text-red-800"
-                      : "text-gray-600"
+                      : colors.textSecondary
                     : selectedAnswer === option
-                    ? "text-blue-800"
-                    : "text-gray-800"
+                    ? colors.primary
+                    : colors.text
                 }`}
               >
                 {option}
@@ -430,7 +442,9 @@ const MathExerciseScreen: React.FC<MathExerciseProps> = ({
       {/* Result Modal */}
       <Modal visible={showResult} transparent={true} animationType="fade">
         <View className="flex-1 bg-black/50 justify-center items-center px-6">
-          <View className="bg-white rounded-3xl p-8 items-center shadow-xl">
+          <View
+            className={`${colors.card} rounded-3xl p-8 items-center shadow-xl`}
+          >
             <Text className="text-6xl mb-4">{isCorrect ? "🎉" : "😅"}</Text>
             <Text
               className={`text-2xl font-bold mb-2 ${
@@ -444,12 +458,12 @@ const MathExerciseScreen: React.FC<MathExerciseProps> = ({
                 : "Not quite!"}
             </Text>
             {!isCorrect && (
-              <Text className="text-gray-600 mb-4">
+              <Text className={`${colors.textSecondary} mb-4`}>
                 The correct answer is {currentQuestion.answer}
               </Text>
             )}
             <TouchableOpacity
-              className="bg-blue-500 px-8 py-3 rounded-full shadow-md"
+              className={`${colors.primary} px-8 py-3 rounded-full shadow-md`}
               onPress={handleNext}
             >
               <Text className="text-white font-bold">
@@ -469,24 +483,26 @@ const MathExerciseScreen: React.FC<MathExerciseProps> = ({
         animationType="slide"
       >
         <View className="flex-1 bg-black/50 justify-center items-center px-6">
-          <View className="bg-white rounded-3xl p-8 items-center shadow-xl">
+          <View
+            className={`${colors.card} rounded-3xl p-8 items-center shadow-xl`}
+          >
             <Text className="text-8xl mb-4">{getScoreEmoji()}</Text>
-            <Text className="text-3xl font-bold text-gray-800 mb-2">
+            <Text className={`text-3xl font-bold ${colors.text} mb-2`}>
               Exercise Complete!
             </Text>
-            <Text className="text-xl text-gray-600 mb-4">
+            <Text className={`text-xl ${colors.textSecondary} mb-4`}>
               You scored {score} out of {questions.length}
             </Text>
-            <Text className="text-lg text-center text-gray-700 mb-6">
+            <Text className={`text-lg text-center ${colors.text} mb-6`}>
               {getEncouragementMessage()}
             </Text>
 
             <View className="flex-row space-x-4">
               <TouchableOpacity
-                className="bg-blue-500 px-6 py-3 rounded-full shadow-md"
+                className={`${colors.primary} px-6 py-3 rounded-full shadow-md`}
                 onPress={() => {
                   setShowFinalResults(false);
-                  // Reset for retry
+                  // Reset state for retry
                   setCurrentQuestionIndex(0);
                   setScore(0);
                   setSelectedAnswer(null);
@@ -500,7 +516,7 @@ const MathExerciseScreen: React.FC<MathExerciseProps> = ({
               </TouchableOpacity>
 
               <TouchableOpacity
-                className="bg-green-500 px-6 py-3 rounded-full shadow-md"
+                className={`${colors.success} px-6 py-3 rounded-full shadow-md`}
                 onPress={() => {
                   setShowFinalResults(false);
                   setTimeout(() => {
